@@ -1,0 +1,117 @@
+import pygame, sys
+from pygame.locals import QUIT
+from random import randint, uniform
+
+#Global setup
+pygame.init()
+WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+pygame.display.set_caption('Asteroid Shooter or Something')
+clock = pygame.time.Clock()
+
+#Functions
+def LaserUpdate(laser_list, laser_speed):
+    for rect in laser_list:
+        rect.y -= laser_speed
+        if rect.bottom < 0:
+            laser_list.remove(rect)
+
+def AsteroidUpdate(asteroid_list, speed = 5):
+    for asteroid_tuple in asteroid_list:
+        direction = asteroid_tuple[1]
+        asteroid_rect = asteroid_tuple[0]
+        asteroid_rect.center += direction*speed
+        if asteroid_rect.top > WINDOW_HEIGHT:
+            asteroid_list.remove(asteroid_tuple)
+
+
+#ship_surface = pygame.Surface((70,70))
+ship_surface = pygame.image.load('../Asteroid/sprites/red_01.png')
+ship_surface_scaled = pygame.transform.scale(ship_surface, (46,46))
+ship_rect = ship_surface_scaled.get_rect(center = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
+
+laser_surface = pygame.image.load('../Asteroid/sprites/Laser.png')
+laser_rect = laser_surface.get_rect(center = ship_rect.center)
+laser_list = []
+
+asteroid_surface = pygame.image.load('../Asteroid/sprites/Asteroid.png').convert()
+asteroid_list = []
+
+bg_surface = pygame.image.load('../Asteroid/sprites/Space.jpg')
+
+pygame.mouse.set_visible(False)
+
+asteroid_timer = pygame.event.custom_type()
+pygame.time.set_timer(asteroid_timer, 50) #asteroid spawn rate
+#Game loop
+while True:
+    #Close game event
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1: #single fire (works fine)
+                laser_rect = laser_surface.get_rect(midbottom = ship_rect.midtop)
+                laser_list.append(laser_rect)
+
+        
+        if event.type == asteroid_timer:
+            #Logic for asteroid, append to our list
+            pos_x = randint(-100, WINDOW_WIDTH+100)
+            pos_y = randint(-250, -70)
+            asteroid_rect = asteroid_surface.get_rect(center = (pos_x, pos_y))
+            direction = pygame.math.Vector2(uniform(-0.5,0.5),1)
+            HP = 3
+            asteroid_list.append([asteroid_rect, direction, HP])
+
+    
+    clock.tick(120)
+    #Section1 - Spirites & Surfaces
+        #Player, Incoming Objects, Background, Projectile, Text
+    screen.fill((0,0,0))
+    #displaysurface.blit(bg_surface, (0,0))
+    screen.blit(bg_surface, (0,0))
+    screen.blit(ship_surface_scaled,ship_rect)
+
+    
+    
+    #Section2 - Inputs & Controls
+        #Movement (Mouse), Projectiles (Buttons)
+    #ship_rect.x += 1
+    #ship_rect.y += 0
+    ship_rect.center = pygame.mouse.get_pos()
+
+#     if pygame.mouse.get_pressed() == (1,0,0): #autofire(has some prob), comment out line 54 - 57
+#         laser_rect = laser_surface.get_rect(midbottom = ship_rect.midtop)
+#         laser_list.append(laser_rect)
+        
+        
+    #Section3 - Game Logic & Update
+        #Movement code, List for asteroids, Iteration, Collisions
+        #Score, Lives, Splits?, Audio?, Bomb?
+    
+    LaserUpdate(laser_list, 10)
+    AsteroidUpdate(asteroid_list)
+    
+    for asteroid_tuple in asteroid_list:
+        asteroid_rect = asteroid_tuple[0]
+        if ship_rect.colliderect(asteroid_rect):
+            pygame.quit()
+            sys.exit()
+    
+    for asteroid_tuple in asteroid_list:
+        for laser_rect in laser_list:
+            if asteroid_tuple[0].colliderect(laser_rect):
+                laser_list.remove(laser_rect)
+                asteroid_list.remove(asteroid_tuple)
+
+    
+    
+    for rect in laser_list:
+        screen.blit(laser_surface, rect)
+    for asteroid_tuple in asteroid_list:
+        screen.blit(asteroid_surface, asteroid_tuple[0])
+    
+    #Final visual update to user
+    pygame.display.update()
