@@ -34,7 +34,7 @@ laser_surface = pygame.image.load('../Asteroid/sprites/Laser.png')
 laser_rect = laser_surface.get_rect(center = ship_rect.center)
 laser_list = []
 
-asteroid_surface = pygame.image.load('../Asteroid/sprites/Asteroid.png').convert()
+asteroid_surface = pygame.image.load('../Asteroid/sprites/Asteroid.png').convert_alpha()
 asteroid_list = []
 
 bg_surface = pygame.image.load('../Asteroid/sprites/Space.jpg')
