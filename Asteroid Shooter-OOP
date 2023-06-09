@@ -1,0 +1,91 @@
+import pygame, sys
+import math
+
+#Class Definitions
+class Ship(pygame.sprite.Sprite):
+  def __init__(self,groups):
+    super().__init__(groups)
+    self.image = pygame.image.load("Sprites/player.png").convert_alpha()
+    self.image_og = self.image
+    self.rect = self.image.get_rect(center =(SCREEN_W/2,SCREEN_H/2))
+    self.current_angle = 90
+    self.x = SCREEN_W/2
+    self.y = SCREEN_H/2
+    self.speed = 15
+
+  def movement(self):
+    current_keys = pygame.key.get_pressed()
+    if current_keys[pygame.K_w]:
+
+      self.x += self.speed*(math.cos(math.radians(self.current_angle)))
+      self.y -= self.speed*(math.sin(math.radians(self.current_angle)))
+      self.rect.center = (self.x,self.y)
+      
+      if self.x > SCREEN_W:
+        self.x = 0
+      elif self.x < 0:
+        self.x = SCREEN_W
+
+      if self.y > SCREEN_H:
+        self.y = 0
+      elif self.y < 0:
+        self.y = SCREEN_H
+      
+    if current_keys[pygame.K_d]:
+
+      self.current_angle -= 5
+      if self.current_angle < 0:
+        self.current_angle = 359
+      self.image = pygame.transform.rotozoom(self.image_og,(self.current_angle - 90), 1.0)
+      self.rect.center = (self.x, self.y)
+      
+    if current_keys[pygame.K_a]:
+      self.current_angle += 5
+      if self.current_angle > 359:
+        self.current_angle = 0
+      self.rect.center = (self.x, self.y)
+      self.image = pygame.transform.rotozoom(self.image_og,(self.current_angle - 90), 1.0)
+    
+  def update(self):
+    self.movement()
+    
+
+    
+#Game Setup
+    
+pygame.init()
+pygame.display.set_caption('Asteroid Clone - OOP')
+SCREEN_W, SCREEN_H = 1280, 720 
+display_surface = pygame.display.set_mode((SCREEN_W, SCREEN_H),pygame.FULLSCREEN)
+clock = pygame.time.Clock()
+
+#Game Files
+background = pygame.image.load("Sprites/background.png").convert()
+
+#Game Sprites
+spaceship_group = pygame.sprite.GroupSingle()
+ship = Ship(spaceship_group)
+
+#Main Game Loop
+while True:
+  for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+      pygame.quit()
+      sys.exit()
+
+  clock.tick(30)
+  #Primary Background
+  display_surface.blit(background,(0,0))
+
+  #Delta Time - Managing Velocity and FR
+  dt = clock.tick() / 1000
+  if pygame.key.get_pressed()[pygame.K_w]:
+    print("yeee")
+  #Updates
+  ship.update()
+  
+  #Draw Call - Sprites
+  spaceship_group.draw(display_surface)
+
+	#Draw Call - Final
+  pygame.display.update()
